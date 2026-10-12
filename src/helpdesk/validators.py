@@ -13,19 +13,15 @@ from helpdesk import settings as helpdesk_settings
 
 def validate_file_extension(value):
     import os
-
     from django.core.exceptions import ValidationError
-
-    ext = os.path.splitext(value.name)[1]  # [0] returns path+filename
-    # TODO: we might improve this with more thorough checks of file types
-    # rather than just the extensions.
 
     if not helpdesk_settings.HELPDESK_VALIDATE_ATTACHMENT_TYPES:
         return
 
-    # TODO: one more check in case it is a file with no extension; we
-    # should always allow that?
-    if ext.lower() not in helpdesk_settings.HELPDESK_VALID_EXTENSIONS and not (
-        ext.lower() == "" or ext.lower() == "."
-    ):
-        raise ValidationError(_("Unsupported file extension: ") + ext.lower())
+    name = value.name
+    if name.count(".") > 1:
+        raise ValidationError(_("Filename must not contain more than one '.'"))
+
+    ext = os.path.splitext(name)[1].lower()
+    if ext not in helpdesk_settings.HELPDESK_VALID_EXTENSIONS and ext not in ("", "."):
+        raise ValidationError(_("Unsupported file extension: ") + ext)

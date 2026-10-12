@@ -1297,7 +1297,9 @@ class FollowUpAttachment(Attachment):
             and not os.path.exists(att_path)
         ):
             os.makedirs(att_path, helpdesk_settings.HELPDESK_ATTACHMENT_DIR_PERMS)
-        return os.path.join(path, filename)
+        ext = os.path.splitext(filename)[1].lower()
+        stored_name = f"{uuid.uuid4().hex}{ext}"
+        return os.path.join(path, stored_name)
 
 
 class KBIAttachment(Attachment):

@@ -1461,11 +1461,20 @@ def download_attachment(request):
     import os
 
     rel = request.GET.get("path", "")
-    full = os.path.join(settings.MEDIA_ROOT, rel)
-    with open(full, "rb") as handle:
-        data = handle.read()
+    media_root = os.path.realpath(settings.MEDIA_ROOT)
+    full = os.path.realpath(os.path.join(media_root, rel))
+
+    if not (full == media_root or full.startswith(media_root + os.sep)):
+        return HttpResponse("Not found", status=404, content_type="text/plain")
+
+    try:
+        with open(full, "rb") as handle:
+            data = handle.read()
+    except OSError:
+        return HttpResponse("Not found", status=404, content_type="text/plain")
+
     response = HttpResponse(data, content_type="application/octet-stream")
-    response["Content-Disposition"] = f'attachment; filename="{os.path.basename(rel)}"'
+    response["Content-Disposition"] = f'attachment; filename="{os.path.basename(full)}"'
     return response
 
 
